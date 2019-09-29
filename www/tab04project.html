@@ -1,0 +1,317 @@
+<!DOCTYPE HTML>
+<HTML>
+
+<HEAD>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>--PREVISÃO DO TEMPO--</title>
+    <meta charset="utf-8" />
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/moment.min.js"></script>
+    <STYLE>
+
+        .center-txt {
+            text-align: center;
+            color: black;
+            width: 90px;
+            padding: 4px;
+            margin: 0;
+            border: 0;
+        }
+
+        .button-selected {
+            background-color: #343a40;
+            color: white;
+            border-radius: 15px;
+        }
+
+        .width-button-bar {
+            text-align: center;
+            padding-top: 5px;
+            padding-bottom: 5px;
+            margin-right: 0;
+            margin-left: 0;
+
+        }
+
+        .bottom-button-bar {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            width: 100%;
+        }
+
+        .icon-font {
+            font-size: 40px;
+        }
+
+        main {
+            padding-top: 40px;
+            padding-bottom: 105px;
+        }
+
+        .headerImg {
+            background-image: url("img/neve.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: fixed;
+        }
+        th {
+            background-color:#DAA520;
+            color: black;
+        }
+    </STYLE>
+    <SCRIPT>
+
+        var key = '0ce35935b5fd4dd5a0305947191503';
+        var html = '';
+        //CARREGAR PREVISAO ATUAL NO BOTAO PESQUISA E TAMBEM NO BOTAO HOJE
+        function carregaPrevisaoAtual(local) {
+            html = '';
+            var url = "http://api.apixu.com/v1/current.json?lang=pt&key=" + key + "&q=" + encodeURIComponent(local.toString());
+            console.log(url);
+            $.ajax({
+                dataType: "json",
+                url: url,
+                contentType: "application/json",
+                dataType: 'json',
+                success: function (result) {
+                    console.log(result);
+                    var cidade = result.location.name.toString();
+                    var regiao = result.location.region.toString();
+                    var horaAtual = moment(result.location.localtime.toString()).format("DD/MM/YYYY HH:mm:ss");
+                    var tempAtual = result.current.temp_c.toString();
+                    var sensacaoTermica = result.current.feelslike_c.toString();
+                    var condicaoClimatica = result.current.condition.text.toString();
+                    var condicaoClimaticaIcone = result.current.condition.icon.toString();
+                    html += "<table width=100%> \
+                                <th class='text-center'>Cidade</th> \
+                                <th class='text-center'>Estado</th> \
+                                <th class='text-center'>Data e Hora</th> \
+                                <th class='text-center'>Temperatura Atual</th> \
+                                <th class='text-center'>Sensação térmica</th> \
+                                <th class='text-center'>Condição Climática</th> \
+                                <tbody> \
+                                    <tr> \
+                                        <td class='text-center'>"+ cidade + "</td> \
+                                        <td class='text-center'>"+ regiao + "</td> \
+                                        <td class='text-center'>"+ horaAtual + "</td> \
+                                        <td class='text-center'>"+ tempAtual + " °C</td> \
+                                        <td class='text-center'>"+ sensacaoTermica + " °C</td> \
+                                        <td class='text-center'>"+ condicaoClimatica + "<img id='icone' src='http:" + condicaoClimaticaIcone + "'></span></td> \
+                                    </tr> \
+                                </tbody> \
+                            </table>";
+
+
+                    $("#content").html(html);
+                }
+            });
+        }
+        //CRIAR TABELAS PARA CARREGAS PREVISOES DE TEMPO DE 3 DIAS E 1 SEMANA
+        function carregaPrevisaoDia(local, numeroDias) {
+            html = '';
+            var url = "http://api.apixu.com/v1/forecast.json?lang=pt&key=" + key + "&q=" + encodeURIComponent(local.toString()) + "&days=" + numeroDias.toString();
+            $.ajax({
+                dataType: "json",
+                url: url,
+                contentType: "application/json",
+                dataType: 'json',
+                success: function (result) {
+                    console.log(result);
+                    var cidade = result.location.name.toString();
+                    var regiao = result.location.region.toString();
+                    var horaAtual = moment(result.location.localtime.toString()).format("DD/MM/YYYY HH:mm:ss");
+                    var tempAtual = result.current.temp_c.toString();
+                    var sensacaoTermica = result.current.feelslike_c.toString();
+                    var condicaoClimatica = result.current.condition.text.toString();
+                    var condicaoClimaticaIcone = result.current.condition.icon.toString();
+
+                    html += "<div> <h3>Clima atual</h3> \
+                            <table width=100%> \
+                                <th>Cidade</th> \
+                                <th>Estado</th> \
+                                <th>Data e Hora</th> \
+                                <th>Temperatura Atual</th> \
+                                <th>Sensação térmica</th> \
+                                <th>Condição Climática</th> \
+                                <tbody> \
+                                    <tr> \
+                                        <td>"+ cidade + "</td> \
+                                        <td>"+ regiao + "</td> \
+                                        <td>"+ horaAtual + "</td> \
+                                        <td>"+ tempAtual + " °C</td> \
+                                        <td>"+ sensacaoTermica + " °C</td> \
+                                        <td>"+ condicaoClimatica + "<img id='icone' src='http:" + condicaoClimaticaIcone + "'></span></td> \
+                                    </tr> \
+                                </tbody> \
+                            </table></div>";
+
+                    $("#content").html(html);
+
+                    html += "<div> <h3>Previsão para os próximos " + numeroDias + " dias</h3> \
+							 <table width=100%>";
+                    $.each(result.forecast.forecastday, function () {
+                        var forecastDay = $(this);
+                        var data = moment(forecastDay[0].date.toString()).format("DD/MM/YYYY");
+                        var tempMaximaDia = forecastDay[0].day.maxtemp_c.toString();
+                        var tempMinimaDia = forecastDay[0].day.mintemp_c.toString();
+                        var humidadeMediaDia = forecastDay[0].day.avghumidity.toString();
+                        var precipitacaoTotalDia = forecastDay[0].day.totalprecip_mm.toString();
+                        var condicaoClimaticaDia = forecastDay[0].day.condition.text.toString();
+                        var condicaoClimaticaIconeDia = forecastDay[0].day.condition.icon.toString();
+
+                        html += "<th>Dia</th> \
+                                <th>Temp. Minima</th> \
+                                <th>Temp. Máxima</th> \
+                                <th>Hum. Média</th> \
+                                <th>Precip. Total</th> \
+                                <th>Condição Climática</th> \
+                                <tbody> \
+                                    <tr> \
+                                        <td>"+ data + "</td> \
+                                        <td>"+ tempMinimaDia + " °C</td> \
+                                        <td>"+ tempMaximaDia + " °C</td> \
+                                        <td>"+ humidadeMediaDia + "%</td> \
+                                        <td>"+ precipitacaoTotalDia + " mm</td> \
+                                        <td>"+ condicaoClimaticaDia + "<img id='icone' src='http:" + condicaoClimaticaIconeDia + "'></span></td> \
+                                    </tr> \
+                            ";
+                    });
+
+                    html += "    </tbody> \
+                            </table></div>";
+
+                    $("#content").html(html);
+
+                }
+            });
+        }
+        // Criando ação do Botao para iteração para trazer informações de acordo com a quantidade de dias
+        $().ready(function () {
+            var localPadrao = 'S'
+            carregaPrevisaoAtual('Brazil');
+            //Botão para pesquisar e trazer apenas uma informação
+            $("#btnPesquisar").click(function () {
+                var local = $("#txtCidade").val();
+                $("#content").html('');
+                $("#content").html('Espere um momento...');
+                carregaPrevisaoAtual(local == '' ? 'Brazil' : local, 2);
+            });
+            //Estrutura para pesquisar Hoje
+            $("#buttonToday").click(function () {
+                var local = $("#txtCidade").val();
+                $("#content").html('');
+                $("#content").html('Espere um momento...');
+                carregaPrevisaoAtual(local == '' ? 'Brazil' : local, 2);
+            });
+            //Estrutura para pesquisar 3 dias
+            $("#btnTresDias").click(function () {
+                var local = $("#txtCidade").val();
+                $("#content").html('');
+                $("#content").html('Espere um momento...');
+                carregaPrevisaoDia(local == '' ? 'Brazil' : local, 3);
+            });
+            //Estrutura para pesquisar 7 dias
+            $("#btnSeteDias").click(function () {
+                var local = $("#txtCidade").val();
+                $("#content").html('');
+                $("#content").html('Espere um momento...');
+                carregaPrevisaoDia(local == '' ? 'Brazil' : local, 7);
+            });
+        });
+
+
+    </SCRIPT>
+</HEAD>
+
+<BODY lang="pt-br" class ="headerImg">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03"
+            aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <a class="navbar-brand" href="#">&#x1F981; FTT EC LP2 N1!!!</a>
+
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+            <div class="navbar-nav float-right text-right pr-3">
+                <a class="nav-item nav-link" href="index.html">Splash</a>
+                <a class="nav-item nav-link" href="http://www.fundacaosalvadorarena.org.br/" target="newpage">CEFSA</a>
+                <a class="nav-item nav-link" href="about.html">Sobre</a>
+            </div>
+        </div>
+    </nav>
+
+
+    <h1><span class="badge badge-danger">_________________________ </span></h1>
+    
+    <div class="row">
+        <div class="col-sm-5 col-md-5">
+            <div class="text-align">
+                <h1> PREVISÃO DO TEMPO</h1>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-10">
+            <form>
+                <div class="row">
+                    <div class="form-group col-sm-12">
+                        <label for="txtCidade">Digite a cidade para ver a previsão do tempo</label>
+                        <input type="text" class="form-control" id="txtCidade" placeholder="Cidade, Estado, ...">
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <div class="form-group col-sm-4" style="margin-top:25px;">
+                            <button type="button" id="btnPesquisar" class="btn btn-dark">Buscar</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <br>
+
+            <div id="menu" class="text-center">
+                <div class="btn-group" role="group" aria-label="Menu">
+                    <button type="button" id="buttonToday" class="btn btn-warning">Dia de hoje</button>
+                    <button type="button" id="btnTresDias" class="btn btn-warning">3 dias </button>
+                    <button type="button" id="btnSeteDias" class="btn btn-warning">1 semana </button>
+                </div>
+            </div>
+
+            <br><br>
+
+            <div id="content">
+            </div>
+        </div>
+        <div class="col-sm-1"></div>
+    </div>
+    <footer>
+        <p class="text-center">Tenha todas as informações de tempo em qualquer lugar</p>
+        <p class="text-center">    ATIVIDADE N2 -LP3- Edmilson - RA: 082160035      </p>
+    </footer>
+
+    <nav class="navbar fixed-bottom navbar-light bg-light width-button-bar">
+        <div class="row w-100 bottom-button-bar">
+            <div class="col-sm center-txt"><b onclick='window.location="tab01news.html"'>News<br><span
+                        class="icon-font">&#x1f4f0;</span></b>
+            </div>
+            <div class="col-sm center-txt"><b onclick='window.location="tab02map.html"'>Map<br><span
+                        class="icon-font">&#x1f4cc;</span></b>
+            </div>
+            <div class="col-sm center-txt"><b onclick='window.location="tab03todo.html"'>Todo<br><span
+                        class="icon-font">&#x1F4DD;</span></b>
+            </div>
+            <div class="col-sm center-txt button-selected"><b onclick='window.location="tab04project.html"'>Previsão do
+                    Tempo<br><span class="icon-font">&#x1F981;</span></b>
+            </div>
+        </div>
+    </nav>
+
+</BODY>
+
+</HTML>
