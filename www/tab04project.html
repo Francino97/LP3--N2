@@ -63,27 +63,28 @@
     </STYLE>
     <SCRIPT>
 
-        var key = '0ce35935b5fd4dd5a0305947191503';
+        var key = '2b7cf13e19e159b69b4da81adb8ff738';
         var html = '';
         //CARREGAR PREVISAO ATUAL NO BOTAO PESQUISA E TAMBEM NO BOTAO HOJE
         function carregaPrevisaoAtual(local) {
             html = '';
-            var url = "http://api.apixu.com/v1/current.json?lang=pt&key=" + key + "&q=" + encodeURIComponent(local.toString());
+            var url = "http://api.weatherstack.com/current?access_key=2b7cf13e19e159b69b4da81adb8ff738&query=" + encodeURIComponent(local.toString());
             console.log(url);
             $.ajax({
-                dataType: "json",
                 url: url,
-                contentType: "application/json",
+                ontentType: 'application/json',
+                cache: false,
+                method: 'GET',
                 dataType: 'json',
                 success: function (result) {
                     console.log(result);
                     var cidade = result.location.name.toString();
                     var regiao = result.location.region.toString();
                     var horaAtual = moment(result.location.localtime.toString()).format("DD/MM/YYYY HH:mm:ss");
-                    var tempAtual = result.current.temp_c.toString();
-                    var sensacaoTermica = result.current.feelslike_c.toString();
-                    var condicaoClimatica = result.current.condition.text.toString();
-                    var condicaoClimaticaIcone = result.current.condition.icon.toString();
+                    var tempAtual = result.current.temperature.toString();
+                    var sensacaoTermica = result.current.feelslike.toString();
+                    var condicaoClimatica = result.current.weather_descriptions[0].toString();
+                    var condicaoClimaticaIcone = result.current.weather_icons[0].toString();
                     html += "<table width=100%> \
                                 <th class='text-center'>Cidade</th> \
                                 <th class='text-center'>Estado</th> \
@@ -98,7 +99,7 @@
                                         <td class='text-center'>"+ horaAtual + "</td> \
                                         <td class='text-center'>"+ tempAtual + " °C</td> \
                                         <td class='text-center'>"+ sensacaoTermica + " °C</td> \
-                                        <td class='text-center'>"+ condicaoClimatica + "<img id='icone' src='http:" + condicaoClimaticaIcone + "'></span></td> \
+                                        <td class='text-center'>"+ condicaoClimatica + "<img id='icone' src='" + condicaoClimaticaIcone + "'></span></td> \
                                     </tr> \
                                 </tbody> \
                             </table>";
@@ -111,21 +112,22 @@
         //CRIAR TABELAS PARA CARREGAS PREVISOES DE TEMPO DE 3 DIAS E 1 SEMANA
         function carregaPrevisaoDia(local, numeroDias) {
             html = '';
-            var url = "http://api.apixu.com/v1/forecast.json?lang=pt&key=" + key + "&q=" + encodeURIComponent(local.toString()) + "&days=" + numeroDias.toString();
+            var url = "http://api.weatherstack.com/forecast?access_key=2b7cf13e19e159b69b4da81adb8ff738&query=" + encodeURIComponent(local.toString()) + "&forecast_days=" + numeroDias.toString();
             $.ajax({
-                dataType: "json",
                 url: url,
-                contentType: "application/json",
+                ontentType: 'application/json',
+                cache: false,
+                method: 'GET',
                 dataType: 'json',
                 success: function (result) {
                     console.log(result);
                     var cidade = result.location.name.toString();
                     var regiao = result.location.region.toString();
                     var horaAtual = moment(result.location.localtime.toString()).format("DD/MM/YYYY HH:mm:ss");
-                    var tempAtual = result.current.temp_c.toString();
-                    var sensacaoTermica = result.current.feelslike_c.toString();
-                    var condicaoClimatica = result.current.condition.text.toString();
-                    var condicaoClimaticaIcone = result.current.condition.icon.toString();
+                    var tempAtual = result.current.temperature.toString();
+                    var sensacaoTermica = result.current.feelslike.toString();
+                    var condicaoClimatica = result.current.weather_descriptions[0].toString();
+                    var condicaoClimaticaIcone = result.current.weather_icons[0].toString();
 
                     html += "<div> <h3>Clima atual</h3> \
                             <table width=100%> \
@@ -278,8 +280,8 @@
             <div id="menu" class="text-center">
                 <div class="btn-group" role="group" aria-label="Menu">
                     <button type="button" id="buttonToday" class="btn btn-warning">Dia de hoje</button>
-                    <button type="button" id="btnTresDias" class="btn btn-warning">3 dias </button>
-                    <button type="button" id="btnSeteDias" class="btn btn-warning">1 semana </button>
+                    <!-- <button type="button" id="btnTresDias" class="btn btn-warning">3 dias </button>
+                    <button type="button" id="btnSeteDias" class="btn btn-warning">1 semana </button> -->
                 </div>
             </div>
 
